@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CArdPr — Système de Pointage OFPPT</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ─── RESET & ROOT ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-ofppt-1:#004B8D;   /* OFPPT deep blue */
+  --c-ofppt-2:#0066BB;   /* OFPPT mid blue */
+  --c-ofppt-3:#E8380D;   /* OFPPT red accent */
+  --c-gold:#C89B3C;
+  --c-bg:#F0F4FA;
+  --c-surface:#FFFFFF;
+  --c-surface-2:#F7F9FC;
+  --c-border:#DDE4EF;
+  --c-text:#0D1B2E;
+  --c-text-2:#4A5568;
+  --c-text-3:#8A96A8;
+  --c-present:#0B8457;
+  --c-late:#D97706;
+  --c-absent:#DC2626;
+  --c-present-bg:#ECFDF5;
+  --c-late-bg:#FFFBEB;
+  --c-absent-bg:#FEF2F2;
+  --sidebar-w:260px;
+  --topbar-h:64px;
+  --radius:12px;
+  --radius-lg:18px;
+  --shadow-sm:0 1px 3px rgba(0,75,141,.06),0 1px 2px rgba(0,75,141,.04);
+  --shadow:0 4px 16px rgba(0,75,141,.10),0 1px 4px rgba(0,75,141,.06);
+  --shadow-lg:0 12px 40px rgba(0,75,141,.14),0 4px 12px rgba(0,75,141,.08);
+}
+html{font-size:14px}
+body{font-family:'DM Sans',sans-serif;background:var(--c-bg);color:var(--c-text);min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select{font-family:inherit;outline:none}
+a{text-decoration:none}
+
+/* ─── SCROLLBAR ────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:99px}
+
+/* ─── ANIMATIONS ───────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.fade-up{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) forwards}
+.fade-up-1{animation-delay:.05s;opacity:0}
+.fade-up-2{animation-delay:.1s;opacity:0}
+.fade-up-3{animation-delay:.15s;opacity:0}
+.fade-up-4{animation-delay:.2s;opacity:0}
+.fade-up-5{animation-delay:.25s;opacity:0}
+
+/* ─── LOGIN PAGE ───────────────────────────────────── */
+#login-page{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+  background:linear-gradient(135deg,#003a6e 0%,#004B8D 40%,#0066BB 70%,#0077d4 100%);
+  position:relative;overflow:hidden;
+}
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+#login-page::after{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,56,13,.15) 0%,transparent 70%);
+  bottom:-200px;right:-150px;
+}
+.login-card{
+  position:relative;z-index:1;
+  width:100%;max-width:420px;
+  background:rgba(255,255,255,.97);
+  border-radius:24px;
+  box-shadow:0 32px 80px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.1);
+  overflow:hidden;
+  animation:scaleIn .5s cubic-bezier(.22,1,.36,1);
+}
+.login-header{
+  background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));
+  padding:36px 40px 32px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.login-header::before{
+  content:'';position:absolute;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+  top:-80px;right:-60px;
+}
+.logo-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:68px;height:68px;border-radius:18px;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(10px);
+  border:2px solid rgba(255,255,255,.2);
+  margin-bottom:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.logo-badge svg{width:32px;height:32px;fill:white}
+.login-header h1{color:#fff;font-size:1.8rem;font-weight:700;letter-spacing:-.02em}
+.login-header p{color:rgba(255,255,255,.7);font-size:.8rem;margin-top:4px;letter-spacing:.08em;text-transform:uppercase}
+.login-body{padding:36px 40px}
+.role-tabs{display:flex;background:var(--c-bg);border-radius:10px;padding:4px;margin-bottom:24px;gap:4px}
+.role-tab{
+  flex:1;padding:8px 4px;border-radius:8px;
+  font-size:.75rem;font-weight:600;
+  color:var(--c-text-2);background:transparent;
+  transition:all .2s;letter-spacing:.02em;
+}
+.role-tab.active{background:#fff;color:var(--c-ofppt-1);box-shadow:var(--shadow-sm)}
+.field-group{margin-bottom:18px}
+.field-group label{display:block;font-size:.75rem;font-weight:600;color:var(--c-text-2);margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase}
+.field-group input{
+  width:100%;padding:12px 16px;
+  background:var(--c-surface-2);
+  border:1.5px solid var(--c-border);
+  border-radius:10px;font-size:.9rem;color:var(--c-text);
+  transition:all .2s;
+}
+.field-group input:focus{border-color:var(--c-ofppt-2);background:#fff;box-shadow:0 0 0 4px rgba(0,102,187,.08)}
+.btn-login{
+  width:100%;padding:14px;border-radius:12px;
+  background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));
+  color:#fff;font-size:.95rem;font-weight:700;
+  letter-spacing:.03em;
+  box-shadow:0 4px 20px rgba(0,75,141,.35);
+  transition:all .25s;margin-top:8px;
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,75,141,.45)}
+.btn-login:active{transform:translateY(0)}
+.login-footer{text-align:center;margin-top:20px;color:var(--c-text-3);font-size:.75rem;line-height:1.6}
+.login-footer strong{color:var(--c-ofppt-1)}
+
+/* ─── APP LAYOUT ───────────────────────────────────── */
+#app{display:none;min-height:100vh}
+
+/* ─── SIDEBAR ──────────────────────────────────────── */
+.sidebar{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--c-ofppt-1);
+  display:flex;flex-direction:column;z-index:100;
+  transition:transform .3s cubic-bezier(.22,1,.36,1);
+}
+.sidebar-logo{
+  padding:24px 20px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:14px;
+}
+.sidebar-logo-icon{
+  width:42px;height:42px;border-radius:11px;
+  background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  border:1px solid rgba(255,255,255,.2);
+}
+.sidebar-logo-icon svg{width:22px;height:22px;fill:#fff}
+.sidebar-logo-text h2{color:#fff;font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+.sidebar-logo-text p{color:rgba(255,255,255,.5);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
+.sidebar-section{padding:12px 12px 4px;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 12px;margin:2px 10px;
+  border-radius:10px;cursor:pointer;
+  transition:all .2s;color:rgba(255,255,255,.65);
+  font-size:.85rem;font-weight:500;
+  position:relative;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.15);color:#fff}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:#fff;border-radius:0 3px 3px 0;
+}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.nav-item .nav-badge{
+  margin-left:auto;background:var(--c-ofppt-3);
+  color:#fff;font-size:.6rem;font-weight:700;
+  padding:2px 7px;border-radius:99px;
+}
+.sidebar-footer{
+  margin-top:auto;padding:16px 12px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.user-card{
+  display:flex;align-items:center;gap:11px;
+  padding:10px;border-radius:10px;
+  background:rgba(255,255,255,.08);
+  cursor:pointer;transition:background .2s;
+}
+.user-card:hover{background:rgba(255,255,255,.12)}
+.user-avatar{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.user-info{flex:1;min-width:0}
+.user-info strong{display:block;color:#fff;font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-info span{display:block;color:rgba(255,255,255,.45);font-size:.65rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logout-btn{
+  color:rgba(255,255,255,.4);background:transparent;
+  padding:6px;border-radius:7px;transition:all .2s;
+}
+.logout-btn:hover{background:rgba(232,56,13,.2);color:var(--c-ofppt-3)}
+.logout-btn svg{width:15px;height:15px}
+
+/* ─── TOPBAR ────────────────────────────────────────── */
+.topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--c-border);
+  display:flex;align-items:center;padding:0 28px;gap:16px;
+  z-index:90;
+}
+.topbar-title{flex:1}
+.topbar-title h2{font-size:.95rem;font-weight:700;color:var(--c-text)}
+.topbar-title p{font-size:.72rem;color:var(--c-text-3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.topbar-btn{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--c-surface-2);border:1px solid var(--c-border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--c-text-2);transition:all .2s;position:relative;
+}
+.topbar-btn:hover{background:var(--c-ofppt-1);color:#fff;border-color:var(--c-ofppt-1)}
+.topbar-btn svg{width:17px;height:17px}
+.notif-dot{
+  position:absolute;top:7px;right:7px;
+  width:7px;height:7px;background:var(--c-ofppt-3);
+  border-radius:50%;border:1.5px solid #fff;
+}
+.topbar-user{
+  display:flex;align-items:center;gap:9px;
+  padding:6px 12px;border-radius:10px;
+  background:var(--c-surface-2);border:1px solid var(--c-border);
+  cursor:pointer;transition:all .2s;
+}
+.topbar-user:hover{border-color:var(--c-ofppt-2)}
+.topbar-avatar{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#fff;
+}
+.topbar-user-info strong{display:block;font-size:.78rem;font-weight:600;color:var(--c-text)}
+.topbar-user-info span{display:block;font-size:.67rem;color:var(--c-text-3)}
+.topbar-chevron svg{width:13px;height:13px;color:var(--c-text-3)}
+.hamburger{display:none;width:38px;height:38px;border-radius:10px;background:transparent;color:var(--c-text-2);align-items:center;justify-content:center}
+.hamburger svg{width:20px;height:20px}
+
+/* ─── MAIN CONTENT ──────────────────────────────────── */
+.main-content{
+  margin-left:var(--sidebar-w);
+  margin-top:var(--topbar-h);
+  padding:28px;
+  min-height:calc(100vh - var(--topbar-h));
+}
+
+/* ─── PAGES ─────────────────────────────────────────── */
+.page{display:none}
+.page.active{display:block}
+
+/* ─── STAT CARDS ─────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--c-surface);border-radius:var(--radius-lg);
+  padding:22px;border:1px solid var(--c-border);
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  transition:all .25s;
+}
+.stat-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.stat-card::after{
+  content:'';position:absolute;
+  top:-30px;right:-30px;
+  width:100px;height:100px;border-radius:50%;
+  opacity:.06;
+}
+.stat-card.blue::after{background:var(--c-ofppt-1)}
+.stat-card.green::after{background:var(--c-present)}
+.stat-card.orange::after{background:var(--c-late)}
+.stat-card.red::after{background:var(--c-absent)}
+.stat-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;
+}
+.stat-icon svg{width:20px;height:20px}
+.stat-card.blue .stat-icon{background:#EEF4FF;color:var(--c-ofppt-1)}
+.stat-card.green .stat-icon{background:var(--c-present-bg);color:var(--c-present)}
+.stat-card.orange .stat-icon{background:var(--c-late-bg);color:var(--c-late)}
+.stat-card.red .stat-icon{background:var(--c-absent-bg);color:var(--c-absent)}
+.stat-label{font-size:.7rem;font-weight:600;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.stat-value{font-size:2.1rem;font-weight:700;color:var(--c-text);line-height:1;margin-bottom:6px}
+.stat-sub{font-size:.73rem;color:var(--c-text-3)}
+.stat-bar{height:3px;background:var(--c-border);border-radius:99px;margin-top:14px}
+.stat-bar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.stat-card.blue .stat-bar-fill{background:var(--c-ofppt-1)}
+.stat-card.green .stat-bar-fill{background:var(--c-present)}
+.stat-card.orange .stat-bar-fill{background:var(--c-late)}
+.stat-card.red .stat-bar-fill{background:var(--c-absent)}
+
+/* ─── CARDS ──────────────────────────────────────────── */
+.card{
+  background:var(--c-surface);border-radius:var(--radius-lg);
+  border:1px solid var(--c-border);box-shadow:var(--shadow-sm);
+  overflow:hidden;
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid var(--c-border);
+}
+.card-title{font-size:.9rem;font-weight:700;color:var(--c-text)}
+.card-subtitle{font-size:.72rem;color:var(--c-text-3);margin-top:2px}
+.card-body{padding:22px}
+
+/* ─── LIVE INDICATOR ────────────────────────────────── */
+.live-dot{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--c-present)}
+.live-dot::before{content:'';width:7px;height:7px;background:var(--c-present);border-radius:50%;animation:pulse 1.5s infinite}
+
+/* ─── TABLE ──────────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:2px solid var(--c-border)}
+thead th{
+  padding:11px 16px;text-align:left;
+  font-size:.68rem;font-weight:700;
+  color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--c-border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--c-surface-2)}
+tbody td{padding:13px 16px;font-size:.83rem;color:var(--c-text-2);white-space:nowrap}
+tbody td.bold{font-weight:600;color:var(--c-text)}
+.mono{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--c-text-3)}
+
+/* ─── BADGES ─────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:99px;
+  font-size:.7rem;font-weight:700;letter-spacing:.04em;
+  white-space:nowrap;
+}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.badge-present{background:var(--c-present-bg);color:var(--c-present)}
+.badge-present::before{background:var(--c-present)}
+.badge-late{background:var(--c-late-bg);color:var(--c-late)}
+.badge-late::before{background:var(--c-late)}
+.badge-absent{background:var(--c-absent-bg);color:var(--c-absent)}
+.badge-absent::before{background:var(--c-absent)}
+.badge-active{background:#EEF4FF;color:var(--c-ofppt-1)}
+.badge-active::before{background:var(--c-ofppt-1)}
+.badge-inactive{background:var(--c-bg);color:var(--c-text-3)}
+.badge-inactive::before{background:var(--c-text-3)}
+
+/* ─── ROLE CHIP ──────────────────────────────────────── */
+.role-chip{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:6px;
+  font-size:.68rem;font-weight:600;
+}
+.role-chip.stagiaire{background:#F0F9FF;color:#0369A1}
+.role-chip.formateur{background:#F5F3FF;color:#6D28D9}
+.role-chip.administrateur{background:#FFF7ED;color:#C2410C}
+
+/* ─── AVATAR ─────────────────────────────────────────── */
+.av{
+  width:32px;height:32px;border-radius:9px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+
+/* ─── SEARCH/FILTER ROW ──────────────────────────────── */
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--c-text-3)}
+.search-input{
+  width:100%;padding:10px 14px 10px 36px;
+  background:var(--c-surface);border:1.5px solid var(--c-border);
+  border-radius:10px;font-size:.83rem;color:var(--c-text);
+  transition:all .2s;
+}
+.search-input:focus{border-color:var(--c-ofppt-2);box-shadow:0 0 0 3px rgba(0,102,187,.08)}
+.filter-select{
+  padding:10px 14px;background:var(--c-surface);
+  border:1.5px solid var(--c-border);border-radius:10px;
+  font-size:.83rem;color:var(--c-text-2);cursor:pointer;
+  transition:border-color .2s;
+}
+.filter-select:focus{border-color:var(--c-ofppt-2)}
+
+/* ─── BUTTONS ─────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 18px;border-radius:10px;
+  font-size:.82rem;font-weight:600;transition:all .2s;
+  white-space:nowrap;
+}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:var(--c-ofppt-1);color:#fff;box-shadow:0 2px 8px rgba(0,75,141,.25)}
+.btn-primary:hover{background:var(--c-ofppt-2);box-shadow:0 4px 14px rgba(0,75,141,.35);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--c-text-2);border:1.5px solid var(--c-border)}
+.btn-outline:hover{background:var(--c-surface-2);border-color:var(--c-ofppt-2);color:var(--c-ofppt-1)}
+.btn-danger{background:var(--c-absent-bg);color:var(--c-absent);border:1.5px solid rgba(220,38,38,.15)}
+.btn-danger:hover{background:var(--c-absent);color:#fff}
+.btn-sm{padding:7px 13px;font-size:.75rem}
+.btn-icon{width:34px;height:34px;padding:0;justify-content:center}
+
+/* ─── CHARTS GRID ────────────────────────────────────── */
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px}
+.chart-wrap{position:relative;height:260px}
+
+/* ─── PROGRESS BAR ───────────────────────────────────── */
+.progress-row{display:flex;flex-direction:column;gap:10px}
+.progress-item{display:flex;flex-direction:column;gap:6px}
+.progress-meta{display:flex;justify-content:space-between;align-items:center}
+.progress-meta span:first-child{font-size:.78rem;font-weight:600;color:var(--c-text-2)}
+.progress-meta span:last-child{font-size:.75rem;font-weight:700}
+.progress-track{height:8px;background:var(--c-bg);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+
+/* ─── PROFILE PAGE ───────────────────────────────────── */
+.profile-hero{
+  background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));
+  border-radius:var(--radius-lg);padding:32px;
+  display:flex;align-items:center;gap:24px;
+  margin-bottom:20px;position:relative;overflow:hidden;
+}
+.profile-hero::before{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+  top:-100px;right:-80px;
+}
+.profile-avatar{
+  width:80px;height:80px;border-radius:20px;
+  background:rgba(255,255,255,.15);
+  border:3px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:700;color:#fff;
+  flex-shrink:0;position:relative;z-index:1;
+}
+.profile-info{position:relative;z-index:1}
+.profile-info h2{color:#fff;font-size:1.4rem;font-weight:700}
+.profile-info p{color:rgba(255,255,255,.7);font-size:.82rem;margin-top:4px}
+.profile-tags{display:flex;gap:8px;margin-top:10px}
+.profile-tag{
+  padding:4px 12px;border-radius:99px;
+  background:rgba(255,255,255,.15);
+  color:rgba(255,255,255,.9);
+  font-size:.7rem;font-weight:600;
+  border:1px solid rgba(255,255,255,.2);
+}
+.rate-bar{
+  height:12px;background:var(--c-bg);border-radius:99px;
+  overflow:hidden;margin:8px 0;
+}
+.rate-fill{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--c-ofppt-1),var(--c-ofppt-2));
+  transition:width 1.5s cubic-bezier(.22,1,.36,1);
+}
+.mini-stat{text-align:center;padding:16px;background:var(--c-surface-2);border-radius:12px}
+.mini-stat .val{font-size:1.8rem;font-weight:700;line-height:1}
+.mini-stat .lbl{font-size:.68rem;color:var(--c-text-3);margin-top:4px;font-weight:500}
+
+/* ─── MODAL ──────────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,27,46,.5);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--c-surface);border-radius:20px;
+  width:100%;max-width:460px;
+  box-shadow:var(--shadow-lg);
+  animation:scaleIn .3s cubic-bezier(.22,1,.36,1);
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;border-bottom:1px solid var(--c-border);
+}
+.modal-header h3{font-size:1rem;font-weight:700;color:var(--c-text)}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;background:var(--c-bg);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--c-text-3);transition:all .2s;
+}
+.modal-close:hover{background:var(--c-absent-bg);color:var(--c-absent)}
+.modal-close svg{width:16px;height:16px}
+.modal-body{padding:24px}
+.modal-footer{
+  display:flex;gap:10px;padding:16px 24px;
+  border-top:1px solid var(--c-border);background:var(--c-surface-2);
+  border-radius:0 0 20px 20px;
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:.7rem;font-weight:700;color:var(--c-text-2);letter-spacing:.06em;text-transform:uppercase}
+.form-field input,.form-field select{
+  padding:10px 14px;background:var(--c-surface-2);
+  border:1.5px solid var(--c-border);border-radius:9px;
+  font-size:.85rem;color:var(--c-text);transition:all .2s;
+}
+.form-field input:focus,.form-field select:focus{border-color:var(--c-ofppt-2);background:#fff;box-shadow:0 0 0 3px rgba(0,102,187,.08)}
+
+/* ─── PAGINATION ─────────────────────────────────────── */
+.pagination{display:flex;align-items:center;gap:4px;padding:14px 22px;border-top:1px solid var(--c-border)}
+.page-btn{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:600;color:var(--c-text-2);
+  background:transparent;border:1px solid transparent;transition:all .2s;
+}
+.page-btn:hover{background:var(--c-bg);border-color:var(--c-border)}
+.page-btn.active{background:var(--c-ofppt-1);color:#fff;border-color:var(--c-ofppt-1)}
+.page-info{margin-left:auto;font-size:.72rem;color:var(--c-text-3)}
+
+/* ─── GRID LAYOUTS ───────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.row-gap{margin-bottom:20px}
+
+/* ─── OFPPT STRIPE ───────────────────────────────────── */
+.ofppt-stripe{
+  height:4px;
+  background:linear-gradient(90deg,var(--c-ofppt-1) 60%,var(--c-ofppt-3) 100%);
+}
+
+/* ─── OVERLAY SIDEBAR (mobile) ──────────────────────── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  .sidebar{transform:translateX(-260px);width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .topbar{left:0;padding:0 16px}
+  .hamburger{display:flex}
+  .main-content{padding:16px;margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .filter-row{gap:8px}
+  .topbar-user-info{display:none}
+  .topbar-chevron{display:none}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="ofppt-stripe"></div>
+    <div class="login-header">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.47-2.34 6.71-5 7.93-2.66-1.22-5-4.46-5-7.93V7.18L12 5zm-1 3v4h2V8h-2zm0 5v2h2v-2h-2z"/></svg>
+      </div>
+      <h1>CArdPr</h1>
+      <p>Système de Pointage — OFPPT</p>
+    </div>
+    <div class="login-body">
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="selectRole(this,'admin')">Administrateur</button>
+        <button class="role-tab" onclick="selectRole(this,'formateur')">Formateur</button>
+        <button class="role-tab" onclick="selectRole(this,'stagiaire')">Stagiaire</button>
+      </div>
+      <div class="field-group">
+        <label>Adresse Email / البريد الإلكتروني</label>
+        <input type="email" value="admin@ofppt.ma" id="login-email"/>
+      </div>
+      <div class="field-group">
+        <label>Mot de passe / كلمة المرور</label>
+        <input type="password" value="••••••••" id="login-pass"/>
+      </div>
+      <button class="btn-login" onclick="doLogin()">Se connecter — دخول</button>
+      <div class="login-footer">
+        Système sécurisé<br/>
+        <strong>Office de la Formation Professionnelle et de la Promotion du Travail</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <div class="ofppt-stripe" style="position:fixed;top:0;left:0;right:0;z-index:200"></div>
+  <div style="height:4px"></div>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.47-2.34 6.71-5 7.93-2.66-1.22-5-4.46-5-7.93V7.18L12 5z"/></svg>
+      </div>
+      <div class="sidebar-logo-text">
+        <h2>CArdPr</h2>
+        <p>OFPPT System</p>
+      </div>
+    </div>
+
+    <div class="sidebar-section">Navigation</div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Tableau de bord
+      </div>
+      <div class="nav-item" onclick="showPage('live',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        Présence en direct
+        <span class="nav-badge">7</span>
+      </div>
+      <div class="nav-item" onclick="showPage('history',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        Historique
+      </div>
+      <div class="sidebar-section">Gestion</div>
+      <div class="nav-item" onclick="showPage('users',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Utilisateurs
+      </div>
+      <div class="nav-item" onclick="showPage('reports',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        Rapports
+      </div>
+      <div class="sidebar-section">Compte</div>
+      <div class="nav-item" onclick="showPage('profile',this)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Mon Profil
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <strong>Administrateur</strong>
+          <span>admin@ofppt.ma</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()" title="Déconnexion">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+    <div class="topbar-title">
+      <h2 id="page-title">Tableau de bord</h2>
+      <p id="page-date"></p>
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">AD</div>
+        <div class="topbar-user-info">
+          <strong>Administrateur</strong>
+          <span>admin@ofppt.ma</span>
+        </div>
+        <div class="topbar-chevron">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue fade-up fade-up-1">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+          <div class="stat-label">Total Inscrits / الإجمالي</div>
+          <div class="stat-value">55</div>
+          <div class="stat-sub">Formateurs + Stagiaires</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="stat-card green fade-up fade-up-2">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>
+          <div class="stat-label">Présents / حاضرون</div>
+          <div class="stat-value">42</div>
+          <div class="stat-sub">76% du total</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:76%"></div></div>
+        </div>
+        <div class="stat-card orange fade-up fade-up-3">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+          <div class="stat-label">En retard / متأخرون</div>
+          <div class="stat-value">8</div>
+          <div class="stat-sub">15% du total</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:15%"></div></div>
+        </div>
+        <div class="stat-card red fade-up fade-up-4">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></div>
+          <div class="stat-label">Absents / غائبون</div>
+          <div class="stat-value">5</div>
+          <div class="stat-sub">9% du total</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:9%"></div></div>
+        </div>
+      </div>
+
+      <div class="card fade-up fade-up-5">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Présence en direct — الحضور المباشر</div>
+            <div class="card-subtitle">Aujourd'hui, dernières pointages</div>
+          </div>
+          <div class="live-dot">En direct</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom / الاسم</th>
+                <th>Rôle</th>
+                <th>Carte ID</th>
+                <th>Heure</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIVE ── -->
+    <div class="page" id="page-live">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Présence en direct — الحضور المباشر</div>
+            <div class="card-subtitle">Mise à jour en temps réel</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="live-dot">En direct</div>
+            <button class="btn btn-outline btn-sm">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              Exporter
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom / الاسم</th>
+                <th>Rôle</th>
+                <th>Groupe</th>
+                <th>Carte ID</th>
+                <th>Heure d'arrivée</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="live-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <div class="page-info">7 résultats</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HISTORY ── -->
+    <div class="page" id="page-history">
+      <div class="filter-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input class="search-input" type="text" placeholder="Rechercher par nom... / البحث بالاسم..." oninput="filterHistory(this.value)"/>
+        </div>
+        <select class="filter-select" onchange="filterHistoryRole(this.value)">
+          <option value="">Tous les rôles</option>
+          <option value="Stagiaire">Stagiaire</option>
+          <option value="Formateur">Formateur</option>
+          <option value="Administrateur">Administrateur</option>
+        </select>
+        <input type="date" class="filter-select" value="2026-05-12"/>
+        <button class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Exporter PDF
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom / الاسم</th>
+                <th>Rôle</th>
+                <th>Carte ID</th>
+                <th>Date</th>
+                <th>Heure</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="history-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <div class="page-info" id="history-count">— résultats</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="page" id="page-users">
+      <div class="filter-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input class="search-input" type="text" placeholder="Rechercher un utilisateur..."/>
+        </div>
+        <select class="filter-select">
+          <option>Tous les rôles</option>
+          <option>Stagiaire</option>
+          <option>Formateur</option>
+          <option>Administrateur</option>
+        </select>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-add').classList.add('open')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Ajouter / إضافة
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom / الاسم</th>
+                <th>Rôle</th>
+                <th>Carte RFID</th>
+                <th>Groupe</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <div class="page-info">5 utilisateurs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORTS ── -->
+    <div class="page" id="page-reports">
+      <div class="filter-row row-gap" style="justify-content:flex-end">
+        <select class="filter-select">
+          <option>Cette semaine</option>
+          <option>Ce mois</option>
+          <option>3 derniers mois</option>
+        </select>
+        <button class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Exporter rapport
+        </button>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Présence hebdomadaire — الحضور الأسبوعي</div>
+              <div class="card-subtitle">Semaine du 12 Mai 2026</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="bar-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Répartition — التوزيع</div>
+              <div class="card-subtitle">Aujourd'hui</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap" style="height:200px"><canvas id="pie-chart"></canvas></div>
+            <div class="progress-row" style="margin-top:16px">
+              <div class="progress-item">
+                <div class="progress-meta"><span>Présents / حاضرون</span><span style="color:var(--c-present)">76%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:76%;background:var(--c-present)"></div></div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-meta"><span>En retard / متأخرون</span><span style="color:var(--c-late)">15%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:15%;background:var(--c-late)"></div></div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-meta"><span>Absents / غائبون</span><span style="color:var(--c-absent)">9%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:9%;background:var(--c-absent)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card"><div class="card-body" style="text-align:center">
+          <div style="font-size:2.2rem;font-weight:800;color:var(--c-present)">84%</div>
+          <div style="font-size:.75rem;color:var(--c-text-3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Taux de présence moyen</div>
+          <div style="font-size:.7rem;color:var(--c-text-3);margin-top:2px">نسبة الحضور المتوسطة</div>
+        </div></div>
+        <div class="card"><div class="card-body" style="text-align:center">
+          <div style="font-size:2.2rem;font-weight:800;color:var(--c-ofppt-1)">225</div>
+          <div style="font-size:.75rem;color:var(--c-text-3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Pointages cette semaine</div>
+          <div style="font-size:.7rem;color:var(--c-text-3);margin-top:2px">عدد التسجيلات هذا الأسبوع</div>
+        </div></div>
+        <div class="card"><div class="card-body" style="text-align:center">
+          <div style="font-size:2.2rem;font-weight:800;color:var(--c-late)">08:07</div>
+          <div style="font-size:.75rem;color:var(--c-text-3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Heure moyenne d'arrivée</div>
+          <div style="font-size:.7rem;color:var(--c-text-3);margin-top:2px">متوسط وقت الوصول</div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="page" id="page-profile">
+      <div class="profile-hero">
+        <div class="profile-avatar">AB</div>
+        <div class="profile-info">
+          <h2>Ahmed Benali</h2>
+          <p>ahmed.benali@ofppt.ma &nbsp;·&nbsp; Carte: <span style="font-family:'DM Mono';font-size:.85em">A3F2</span></p>
+          <div class="profile-tags">
+            <span class="profile-tag">Stagiaire</span>
+            <span class="profile-tag">Groupe DEV101</span>
+            <span class="profile-tag">2ème année</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Taux de présence — نسبة الحضور</div>
+              <div class="card-subtitle">Année scolaire 2025–2026</div>
+            </div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--c-ofppt-1)">84%</div>
+          </div>
+          <div class="card-body">
+            <div class="rate-bar"><div class="rate-fill" id="profile-rate-bar" style="width:0%"></div></div>
+            <p style="font-size:.75rem;color:var(--c-text-3);margin-top:6px">38 jours présent sur 45 jours — 38 يوم من أصل 45</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px">
+              <div class="mini-stat">
+                <div class="val" style="color:var(--c-present)">38</div>
+                <div class="lbl">Jours présent</div>
+              </div>
+              <div class="mini-stat">
+                <div class="val" style="color:var(--c-late)">5</div>
+                <div class="lbl">Jours retard</div>
+              </div>
+              <div class="mini-stat">
+                <div class="val" style="color:var(--c-absent)">2</div>
+                <div class="lbl">Jours absent</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Historique récent — السجل الأخير</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Heure</th><th>Statut</th></tr></thead>
+              <tbody>
+                <tr><td>12/05/2026</td><td class="mono">08:02</td><td><span class="badge badge-present">Présent</span></td></tr>
+                <tr><td>11/05/2026</td><td class="mono">08:20</td><td><span class="badge badge-late">En retard</span></td></tr>
+                <tr><td>10/05/2026</td><td class="mono">07:58</td><td><span class="badge badge-present">Présent</span></td></tr>
+                <tr><td>09/05/2026</td><td class="mono">—</td><td><span class="badge badge-absent">Absent</span></td></tr>
+                <tr><td>08/05/2026</td><td class="mono">08:05</td><td><span class="badge badge-present">Présent</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ MODAL ADD USER ═══ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Ajouter un utilisateur — إضافة مستخدم</h3>
+      <button class="modal-close" onclick="document.getElementById('modal-add').classList.remove('open')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Nom complet / الاسم الكامل</label>
+          <input type="text" placeholder="Ex: Ahmed Benali"/>
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" placeholder="nom@ofppt.ma"/>
+        </div>
+        <div class="form-field">
+          <label>Carte RFID</label>
+          <input type="text" placeholder="Ex: A3F2" style="font-family:'DM Mono'"/>
+        </div>
+        <div class="form-field">
+          <label>Rôle / الدور</label>
+          <select>
+            <option>Stagiaire</option>
+            <option>Formateur</option>
+            <option>Administrateur</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Groupe</label>
+          <input type="text" placeholder="Ex: DEV101"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('modal-add').classList.remove('open')">Annuler</button>
+      <button class="btn btn-primary" style="flex:2" onclick="document.getElementById('modal-add').classList.remove('open')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        Enregistrer — حفظ
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────
+const avatarColors = [
+  'linear-gradient(135deg,#004B8D,#0066BB)',
+  'linear-gradient(135deg,#6D28D9,#8B5CF6)',
+  'linear-gradient(135deg,#0B8457,#10b981)',
+  'linear-gradient(135deg,#C2410C,#F97316)',
+  'linear-gradient(135deg,#0369A1,#38BDF8)',
+  'linear-gradient(135deg,#9D174D,#EC4899)',
+  'linear-gradient(135deg,#065F46,#34D399)',
+];
+
+const attendance = [
+  {id:1,name:"Ahmed Benali",role:"Stagiaire",group:"DEV101",cardId:"A3F2",time:"08:02",status:"present"},
+  {id:2,name:"Sara Idrissi",role:"Formateur",group:"—",cardId:"B7C1",time:"08:19",status:"late"},
+  {id:3,name:"Youssef Ait Taleb",role:"Stagiaire",group:"DEV101",cardId:"C9D4",time:"08:05",status:"present"},
+  {id:4,name:"Fatima Zohra Alami",role:"Administrateur",group:"—",cardId:"D2E8",time:"07:55",status:"present"},
+  {id:5,name:"Khalid Mansouri",role:"Stagiaire",group:"RES202",cardId:"E5F3",time:"—",status:"absent"},
+  {id:6,name:"Nadia Tazi",role:"Formateur",group:"—",cardId:"F1G6",time:"08:31",status:"late"},
+  {id:7,name:"Omar Berrada",role:"Stagiaire",group:"DEV101",cardId:"G4H9",time:"08:10",status:"present"},
+];
+
+const users = [
+  {id:1,name:"Ahmed Benali",role:"Stagiaire",cardId:"A3F2",group:"DEV101",status:"active"},
+  {id:2,name:"Sara Idrissi",role:"Formateur",cardId:"B7C1",group:"—",status:"active"},
+  {id:3,name:"Youssef Ait Taleb",role:"Stagiaire",cardId:"C9D4",group:"DEV101",status:"active"},
+  {id:4,name:"Fatima Zohra Alami",role:"Administrateur",cardId:"D2E8",group:"—",status:"active"},
+  {id:5,name:"Khalid Mansouri",role:"Stagiaire",cardId:"E5F3",group:"RES202",status:"inactive"},
+];
+
+// ─── HELPERS ─────────────────────────────────────────
+function initials(name){return name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}
+function avBg(i){return avatarColors[i%avatarColors.length]}
+
+function badgeHTML(status){
+  const map={
+    present:'<span class="badge badge-present">Présent / حاضر</span>',
+    late:'<span class="badge badge-late">En retard / متأخر</span>',
+    absent:'<span class="badge badge-absent">Absent / غائب</span>',
+    active:'<span class="badge badge-active">Actif</span>',
+    inactive:'<span class="badge badge-inactive">Inactif</span>',
+  };
+  return map[status]||'';
+}
+
+function roleChip(role){
+  const cls=role.toLowerCase().replace('é','e');
+  return `<span class="role-chip ${cls}">${role}</span>`;
+}
+
+// ─── RENDER TABLES ────────────────────────────────────
+function renderDashboardTable(){
+  const tb=document.getElementById('dashboard-table');
+  tb.innerHTML=attendance.map((r,i)=>`
+    <tr>
+      <td class="bold"><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="background:${avBg(i)}">${initials(r.name)}</div>${r.name}
+      </div></td>
+      <td>${roleChip(r.role)}</td>
+      <td class="mono">${r.cardId}</td>
+      <td>${r.time}</td>
+      <td>${badgeHTML(r.status)}</td>
+    </tr>`).join('');
+}
+
+function renderLiveTable(){
+  const tb=document.getElementById('live-table');
+  tb.innerHTML=attendance.map((r,i)=>`
+    <tr>
+      <td class="bold"><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="background:${avBg(i)}">${initials(r.name)}</div>${r.name}
+      </div></td>
+      <td>${roleChip(r.role)}</td>
+      <td style="color:var(--c-text-3)">${r.group}</td>
+      <td class="mono">${r.cardId}</td>
+      <td class="mono">${r.time}</td>
+      <td>${badgeHTML(r.status)}</td>
+    </tr>`).join('');
+}
+
+function renderHistoryTable(data){
+  const tb=document.getElementById('history-table');
+  tb.innerHTML=data.map((r,i)=>`
+    <tr>
+      <td class="bold"><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="background:${avBg(i)}">${initials(r.name)}</div>${r.name}
+      </div></td>
+      <td>${roleChip(r.role)}</td>
+      <td class="mono">${r.cardId}</td>
+      <td style="color:var(--c-text-3)">12/05/2026</td>
+      <td class="mono">${r.time}</td>
+      <td>${badgeHTML(r.status)}</td>
+    </tr>`).join('');
+  document.getElementById('history-count').textContent=data.length+' résultats';
+}
+
+function renderUsersTable(){
+  const tb=document.getElementById('users-table');
+  tb.innerHTML=users.map((u,i)=>`
+    <tr>
+      <td class="bold"><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="background:${avBg(i)}">${initials(u.name)}</div>${u.name}
+      </div></td>
+      <td>${roleChip(u.role)}</td>
+      <td class="mono">${u.cardId}</td>
+      <td style="color:var(--c-text-3)">${u.group}</td>
+      <td>${badgeHTML(u.status)}</td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm btn-icon" title="Modifier">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="btn btn-danger btn-sm btn-icon" title="Supprimer">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ─── FILTER ───────────────────────────────────────────
+let historyRoleFilter='';
+function filterHistory(q){
+  const data=attendance.filter(r=>
+    r.name.toLowerCase().includes(q.toLowerCase())&&
+    (historyRoleFilter===''||r.role===historyRoleFilter)
+  );
+  renderHistoryTable(data);
+}
+function filterHistoryRole(role){
+  historyRoleFilter=role;
+  filterHistory(document.querySelector('#page-history .search-input').value);
+}
+
+// ─── CHARTS ───────────────────────────────────────────
+let barChart,pieChart;
+function initCharts(){
+  const barCtx=document.getElementById('bar-chart');
+  const pieCtx=document.getElementById('pie-chart');
+  if(!barCtx||!pieCtx)return;
+  if(barChart)barChart.destroy();
+  if(pieChart)pieChart.destroy();
+
+  Chart.defaults.font.family="'DM Sans',sans-serif";
+
+  barChart=new Chart(barCtx,{
+    type:'bar',
+    data:{
+      labels:['Lundi','Mardi','Mercredi','Jeudi','Vendredi'],
+      datasets:[
+        {label:'Présent',data:[42,38,45,40,35],backgroundColor:'rgba(11,132,87,.85)',borderRadius:6,borderSkipped:false},
+        {label:'En retard',data:[8,12,5,9,11],backgroundColor:'rgba(217,119,6,.85)',borderRadius:6,borderSkipped:false},
+        {label:'Absent',data:[5,5,5,6,9],backgroundColor:'rgba(220,38,38,.85)',borderRadius:6,borderSkipped:false},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:16,font:{size:12}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:11}}},
+        y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:11}},beginAtZero:true}
+      }
+    }
+  });
+
+  pieChart=new Chart(pieCtx,{
+    type:'doughnut',
+    data:{
+      labels:['Présents','En retard','Absents'],
+      datasets:[{data:[42,8,5],backgroundColor:['#0B8457','#D97706','#DC2626'],borderWidth:0,hoverOffset:6}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:false}}
+    }
+  });
+}
+
+// ─── PAGE NAVIGATION ──────────────────────────────────
+const pageTitles={
+  dashboard:'Tableau de bord — لوحة التحكم',
+  live:'Présence en direct — الحضور المباشر',
+  history:'Historique — السجل',
+  users:'Gestion des utilisateurs — المستخدمون',
+  reports:'Rapports & Statistiques — التقارير',
+  profile:'Mon Profil — ملفي',
+};
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles[id];
+
+  if(id==='reports'){setTimeout(initCharts,100)}
+  if(id==='profile'){setTimeout(()=>{document.getElementById('profile-rate-bar').style.width='84%'},200)}
+  closeSidebar();
+}
+
+// ─── DATE ─────────────────────────────────────────────
+function setDate(){
+  const d=new Date();
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('page-date').textContent=d.toLocaleDateString('fr-MA',opts);
+}
+
+// ─── LOGIN ────────────────────────────────────────────
+let currentRole='admin';
+function selectRole(btn,role){
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentRole=role;
+}
+function doLogin(){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app').style.display='block';
+  renderDashboardTable();
+  renderLiveTable();
+  renderHistoryTable(attendance);
+  renderUsersTable();
+  setDate();
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-page').style.display='flex';
+  // reset nav
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('.nav-item').classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-dashboard').classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles['dashboard'];
+}
+
+// ─── SIDEBAR MOBILE ───────────────────────────────────
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// ─── INIT ─────────────────────────────────────────────
+setDate();
+</script>
+</body>
+</html>
