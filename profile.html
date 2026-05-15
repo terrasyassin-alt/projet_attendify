@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CArdPr — Mon Profil</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+
+<main class="main-content">
+
+  <!-- Hero -->
+  <div class="profile-hero">
+    <div class="profile-avatar">AB</div>
+    <div class="profile-info">
+      <h2>Ahmed Benali</h2>
+      <p>ahmed.benali@ofppt.ma &nbsp;·&nbsp; Carte: <span style="font-family:'DM Mono',monospace;font-size:.85em">A3F2</span></p>
+      <div class="profile-tags">
+        <span class="profile-tag">Stagiaire</span>
+        <span class="profile-tag">Groupe DEV101</span>
+        <span class="profile-tag">2ème année</span>
+        <span class="profile-tag">Filière: Développement Digital</span>
+      </div>
+    </div>
+    <div style="margin-left:auto;position:relative;z-index:1;text-align:right">
+      <div style="font-size:2.8rem;font-weight:800;color:#fff;line-height:1">84%</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.7);margin-top:4px">Taux de présence</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.5)">نسبة الحضور</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Attendance rate card -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Taux de présence — نسبة الحضور</div>
+          <div class="card-subtitle">Année scolaire 2025–2026</div>
+        </div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--c-ofppt-1)">84%</div>
+      </div>
+      <div class="card-body">
+        <div class="rate-bar">
+          <div class="rate-fill" id="rate-fill" style="width:0%"></div>
+        </div>
+        <p style="font-size:.75rem;color:var(--c-text-3);margin-top:6px">38 jours présent sur 45 jours — 38 يوم من أصل 45</p>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px">
+          <div class="mini-stat">
+            <div class="val" style="color:var(--c-present)">38</div>
+            <div class="lbl">Jours présent / حاضر</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val" style="color:var(--c-late)">5</div>
+            <div class="lbl">Jours retard / متأخر</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val" style="color:var(--c-absent)">2</div>
+            <div class="lbl">Jours absent / غائب</div>
+          </div>
+        </div>
+
+        <!-- Monthly breakdown -->
+        <div style="margin-top:24px">
+          <div style="font-size:.75rem;font-weight:700;color:var(--c-text-2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em">Détail par mois</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px">
+                <span style="color:var(--c-text-2);font-weight:600">Mars 2026</span>
+                <span style="color:var(--c-present);font-weight:700">90%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:90%;background:var(--c-present)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px">
+                <span style="color:var(--c-text-2);font-weight:600">Avril 2026</span>
+                <span style="color:var(--c-late);font-weight:700">78%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:78%;background:var(--c-late)"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px">
+                <span style="color:var(--c-text-2);font-weight:600">Mai 2026</span>
+                <span style="color:var(--c-present);font-weight:700">84%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:84%;background:var(--c-present)"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent history table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Historique récent — السجل الأخير</div>
+        <a href="history.html" style="font-size:.75rem;color:var(--c-ofppt-2);font-weight:600;text-decoration:none">Voir tout →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Statut</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>12/05/2026</td><td class="mono">08:02</td><td><span class="badge badge-present">Présent</span></td></tr>
+            <tr><td>11/05/2026</td><td class="mono">08:20</td><td><span class="badge badge-late">En retard</span></td></tr>
+            <tr><td>10/05/2026</td><td class="mono">07:58</td><td><span class="badge badge-present">Présent</span></td></tr>
+            <tr><td>09/05/2026</td><td class="mono">—</td><td><span class="badge badge-absent">Absent</span></td></tr>
+            <tr><td>08/05/2026</td><td class="mono">08:05</td><td><span class="badge badge-present">Présent</span></td></tr>
+            <tr><td>07/05/2026</td><td class="mono">08:03</td><td><span class="badge badge-present">Présent</span></td></tr>
+            <tr><td>06/05/2026</td><td class="mono">08:35</td><td><span class="badge badge-late">En retard</span></td></tr>
+            <tr><td>05/05/2026</td><td class="mono">08:00</td><td><span class="badge badge-present">Présent</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Informations personnelles — المعلومات الشخصية</div>
+      <button class="btn btn-outline btn-sm">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        Modifier
+      </button>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Nom complet</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--c-text)">Ahmed Benali</div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Email</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--c-text)">ahmed.benali@ofppt.ma</div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Carte RFID</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--c-text);font-family:'DM Mono',monospace">A3F2</div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Groupe</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--c-text)">DEV101</div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Filière</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--c-text)">Développement Digital</div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--c-text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Statut</div>
+          <span class="badge badge-active">Actif</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="data.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('profile');
+document.getElementById('topbar-root').innerHTML = renderTopbar('Mon Profil — ملفي');
+setDate();
+
+// Animate progress bar
+setTimeout(() => {
+  document.getElementById('rate-fill').style.width = '84%';
+}, 300);
+</script>
+</body>
+</html>

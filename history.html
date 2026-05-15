@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CArdPr — Historique</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div id="topbar-root"></div>
+
+<main class="main-content">
+  <div class="filter-row">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input class="search-input" type="text" placeholder="Rechercher par nom... / البحث بالاسم..." oninput="applyFilters()"/>
+    </div>
+    <select class="filter-select" id="role-filter" onchange="applyFilters()">
+      <option value="">Tous les rôles</option>
+      <option value="Stagiaire">Stagiaire</option>
+      <option value="Formateur">Formateur</option>
+      <option value="Administrateur">Administrateur</option>
+    </select>
+    <select class="filter-select" id="status-filter" onchange="applyFilters()">
+      <option value="">Tous les statuts</option>
+      <option value="present">Présent</option>
+      <option value="late">En retard</option>
+      <option value="absent">Absent</option>
+    </select>
+    <input type="date" class="filter-select" value="2026-05-12" onchange="applyFilters()"/>
+    <button class="btn btn-primary btn-sm">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Exporter PDF
+    </button>
+    <button class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+      Excel
+    </button>
+  </div>
+
+  <!-- Summary mini cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+    <div class="card" style="border-left:4px solid var(--c-present)">
+      <div class="card-body" style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--c-present)" id="count-present">0</div>
+        <div><div style="font-size:.75rem;font-weight:700;color:var(--c-text)">Présents</div><div style="font-size:.7rem;color:var(--c-text-3)">حاضرون</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--c-late)">
+      <div class="card-body" style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--c-late)" id="count-late">0</div>
+        <div><div style="font-size:.75rem;font-weight:700;color:var(--c-text)">En retard</div><div style="font-size:.7rem;color:var(--c-text-3)">متأخرون</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--c-absent)">
+      <div class="card-body" style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--c-absent)" id="count-absent">0</div>
+        <div><div style="font-size:.75rem;font-weight:700;color:var(--c-text)">Absents</div><div style="font-size:.7rem;color:var(--c-text-3)">غائبون</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Nom / الاسم</th>
+          <th>Rôle</th>
+          <th>Carte ID</th>
+          <th>Date</th>
+          <th>Heure d'arrivée</th>
+          <th>Statut</th>
+        </tr></thead>
+        <tbody id="history-table"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">3</button>
+      <div class="page-info" id="history-count">— résultats</div>
+    </div>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar('history');
+document.getElementById('topbar-root').innerHTML = renderTopbar('Historique — السجل');
+setDate();
+
+function applyFilters() {
+  const q = document.querySelector('.search-input').value.toLowerCase();
+  const role = document.getElementById('role-filter').value;
+  const status = document.getElementById('status-filter').value;
+
+  const data = attendance.filter(r =>
+    r.name.toLowerCase().includes(q) &&
+    (role === '' || r.role === role) &&
+    (status === '' || r.status === status)
+  );
+
+  const tb = document.getElementById('history-table');
+  tb.innerHTML = data.map((r, i) => `
+    <tr>
+      <td class="bold"><div style="display:flex;align-items:center;gap:10px">
+        <div class="av" style="background:${avBg(i)}">${initials(r.name)}</div>${r.name}
+      </div></td>
+      <td>${roleChip(r.role)}</td>
+      <td class="mono">${r.cardId}</td>
+      <td style="color:var(--c-text-3)">12/05/2026</td>
+      <td class="mono">${r.time}</td>
+      <td>${badgeHTML(r.status)}</td>
+    </tr>`).join('');
+
+  document.getElementById('history-count').textContent = data.length + ' résultats';
+  document.getElementById('count-present').textContent = data.filter(r => r.status === 'present').length;
+  document.getElementById('count-late').textContent = data.filter(r => r.status === 'late').length;
+  document.getElementById('count-absent').textContent = data.filter(r => r.status === 'absent').length;
+}
+
+applyFilters();
+</script>
+</body>
+</html>

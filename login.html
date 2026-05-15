@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CArdPr — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--c-ofppt-1:#004B8D;--c-ofppt-2:#0066BB;--c-ofppt-3:#E8380D;--c-border:#DDE4EF;--c-bg:#F0F4FA;--c-text:#0D1B2E;--c-text-2:#4A5568;--c-text-3:#8A96A8}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#003a6e 0%,#004B8D 40%,#0066BB 70%,#0077d4 100%);position:relative;overflow:hidden}
+body::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+body::after{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(232,56,13,.15) 0%,transparent 70%);bottom:-200px;right:-150px}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.login-card{position:relative;z-index:1;width:100%;max-width:420px;background:rgba(255,255,255,.97);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.1);overflow:hidden;animation:scaleIn .5s cubic-bezier(.22,1,.36,1)}
+.stripe{height:4px;background:linear-gradient(90deg,var(--c-ofppt-1) 60%,var(--c-ofppt-3) 100%)}
+.login-header{background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));padding:36px 40px 32px;text-align:center;position:relative;overflow:hidden}
+.login-header::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);top:-80px;right:-60px}
+.logo-badge{display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;border-radius:18px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.2);margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.logo-badge svg{width:32px;height:32px;fill:white}
+.login-header h1{color:#fff;font-size:1.8rem;font-weight:700;letter-spacing:-.02em}
+.login-header p{color:rgba(255,255,255,.7);font-size:.8rem;margin-top:4px;letter-spacing:.08em;text-transform:uppercase}
+.login-body{padding:36px 40px}
+.role-tabs{display:flex;background:var(--c-bg);border-radius:10px;padding:4px;margin-bottom:24px;gap:4px}
+.role-tab{flex:1;padding:8px 4px;border-radius:8px;font-size:.75rem;font-weight:600;color:var(--c-text-2);background:transparent;border:none;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.role-tab.active{background:#fff;color:var(--c-ofppt-1);box-shadow:0 1px 3px rgba(0,75,141,.06)}
+.field-group{margin-bottom:18px}
+.field-group label{display:block;font-size:.75rem;font-weight:600;color:var(--c-text-2);margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase}
+.field-group input{width:100%;padding:12px 16px;background:var(--c-bg);border:1.5px solid var(--c-border);border-radius:10px;font-size:.9rem;color:var(--c-text);transition:all .2s;font-family:inherit}
+.field-group input:focus{outline:none;border-color:var(--c-ofppt-2);background:#fff;box-shadow:0 0 0 4px rgba(0,102,187,.08)}
+.btn-login{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--c-ofppt-1),var(--c-ofppt-2));color:#fff;font-size:.95rem;font-weight:700;letter-spacing:.03em;box-shadow:0 4px 20px rgba(0,75,141,.35);transition:all .25s;margin-top:8px;border:none;cursor:pointer;font-family:inherit}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,75,141,.45)}
+.login-footer{text-align:center;margin-top:20px;color:var(--c-text-3);font-size:.75rem;line-height:1.6}
+.login-footer strong{color:var(--c-ofppt-1)}
+@media(max-width:480px){.login-body{padding:24px 24px}.login-header{padding:28px 24px 24px}}
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="stripe"></div>
+  <div class="login-header">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.47-2.34 6.71-5 7.93-2.66-1.22-5-4.46-5-7.93V7.18L12 5z"/></svg>
+    </div>
+    <h1>CArdPr</h1>
+    <p>Système de Pointage — OFPPT</p>
+  </div>
+  <div class="login-body">
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="selectRole(this)">Administrateur</button>
+      <button class="role-tab" onclick="selectRole(this)">Formateur</button>
+      <button class="role-tab" onclick="selectRole(this)">Stagiaire</button>
+    </div>
+    <div class="field-group">
+      <label>Adresse Email / البريد الإلكتروني</label>
+      <input type="email" value="admin@ofppt.ma"/>
+    </div>
+    <div class="field-group">
+      <label>Mot de passe / كلمة المرور</label>
+      <input type="password" value="ofppt2026"/>
+    </div>
+    <button class="btn-login" onclick="location.href='index.html'">Se connecter — دخول</button>
+    <div class="login-footer">
+      Système sécurisé<br/>
+      <strong>Office de la Formation Professionnelle et de la Promotion du Travail</strong>
+    </div>
+  </div>
+</div>
+<script>
+function selectRole(btn){
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
